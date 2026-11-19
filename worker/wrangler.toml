@@ -1,0 +1,22 @@
+# Нужен только если деплоишь через терминал (npx wrangler deploy).
+# При деплое через сайт Cloudflare этот файл не используется.
+name = "lifecal"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lifecal"
+database_id = "ВСТАВЬ_ID_БАЗЫ"
+
+[triggers]
+crons = ["0 * * * *"]   # каждый час; бот сам выбирает нужный час для каждого пользователя
+
+[vars]
+WEBAPP_URL = "https://ТВОЙ_НИК.github.io/lifecal/"
+REPORT_HOUR = "20"
+DAILY_REMINDER = "1"
+
+# Секреты задаются отдельно:
+#   npx wrangler secret put BOT_TOKEN
+#   npx wrangler secret put WEBHOOK_SECRET
