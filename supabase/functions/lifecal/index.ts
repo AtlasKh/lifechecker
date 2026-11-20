@@ -49,6 +49,13 @@ Deno.serve(async (req) => {
       return json(await runSchedule());
     }
     if (path === '/setup') return await setup(url);
+    if (path === '/status') {
+      if (url.searchParams.get('key') !== WEBHOOK_SECRET) return new Response('forbidden', { status: 403 });
+      const info = await tg('getWebhookInfo', {});
+      const me = await tg('getMe', {});
+      const db_check = await db.from('users').select('id', { count: 'exact', head: true });
+      return json({ bot: me.result?.username, webhook: info.result, db_error: db_check.error?.message || null, users: db_check.count });
+    }
     return new Response('Мой год · бэкенд работает ✨', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
   } catch (e) {
     console.error(e);
