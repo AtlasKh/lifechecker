@@ -53,8 +53,19 @@ Deno.serve(async (req) => {
       if (url.searchParams.get('key') !== WEBHOOK_SECRET) return new Response('forbidden', { status: 403 });
       const info = await tg('getWebhookInfo', {});
       const me = await tg('getMe', {});
-      const db_check = await db.from('users').select('id', { count: 'exact', head: true });
-      return json({ bot: me.result?.username, webhook: info.result, db_error: db_check.error?.message || null, users: db_check.count });
+      const read = await db.from('users').select('id, notify');
+      const write = await db.from('sent').upsert({ user_id: 0, kind: 'status-test', period: 'x' }, { onConflict: 'user_id,kind,period' });
+      const key = env('SUPABASE_SERVICE_ROLE_KEY');
+      return json({
+        bot: me.result?.username,
+        webhook_error: info.result?.last_error_message || null,
+        pending: info.result?.pending_update_count,
+        db_read_error: read.error?.message || null,
+        users: read.data ? read.data.length : null,
+        db_write_error: write.error?.message || null,
+        service_key: key ? key.slice(0, 7) + '… (' + key.length + ')' : 'MISSING',
+        secret_keys_env: !!Deno.env.get('SUPABASE_SECRET_KEYS'),
+      });
     }
     return new Response('Мой год · бэкенд работает ✨', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
   } catch (e) {
