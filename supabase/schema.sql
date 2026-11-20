@@ -30,3 +30,9 @@ create table if not exists public.sent (
 alter table public.users   enable row level security;
 alter table public.entries enable row level security;
 alter table public.sent    enable row level security;
+
+-- В новых проектах Supabase у таблиц, созданных через SQL, нет прав даже у service_role.
+-- Без этих строк функция получает «permission denied for table ...».
+grant usage on schema public to service_role;
+grant all on all tables in schema public to service_role;
+alter default privileges in schema public grant all on tables to service_role;
