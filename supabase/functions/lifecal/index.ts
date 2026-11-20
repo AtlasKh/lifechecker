@@ -124,7 +124,6 @@ async function handleApi(req, url, path) {
   const m = path.match(/^\/api\/entries\/(\d{4}-\d{2}-\d{2})$/);
   if (req.method === 'PUT' && m) {
     const date = m[1];
-    if (fromKey(date) > addDays(new Date(), 1)) return json({ error: 'future date' }, 400);
     const body = await req.json();
     const answers = {};
     for (const q of QUESTIONS) {
@@ -138,6 +137,10 @@ async function handleApi(req, url, path) {
     if (!vals.length) return json({ error: 'empty' }, 400);
     const score = mean(vals);
     const tz = Number.isFinite(body.tz) ? Math.max(-720, Math.min(840, Math.round(body.tz))) : 120;
+    // отмечать можно только сегодня и вчера (по времени пользователя)
+    const todayKey = keyOf(localNow(tz));
+    const yesterdayKey = keyOf(addDays(fromKey(todayKey), -1));
+    if (date !== todayKey && date !== yesterdayKey) return json({ error: 'only today or yesterday' }, 400);
     const now = Date.now();
     must(await db.from('users').upsert({ id: user.id, first_name: user.first_name || '', tz_offset: tz }, { onConflict: 'id' }));
     must(await db.from('entries').upsert({ user_id: user.id, date, answers, score, updated_at: now }, { onConflict: 'user_id,date' }));
@@ -162,13 +165,22 @@ async function send(chatId, text, markup) {
   return res;
 }
 
+// Постоянные кнопки внизу чата
+const BTN = { today: '✦ Отметить день', week: '📊 Неделя', month: '🌕 Месяц', year: '🏆 Год' };
+const MAIN_KB = {
+  keyboard: [[{ text: BTN.today }], [{ text: BTN.week }, { text: BTN.month }, { text: BTN.year }]],
+  resize_keyboard: true, is_persistent: true,
+};
+const BTN_TO_CMD = { [BTN.today]: '/today', [BTN.week]: '/week', [BTN.month]: '/month', [BTN.year]: '/year' };
+
 async function handleBot(req) {
   if (req.headers.get('X-Telegram-Bot-Api-Secret-Token') !== WEBHOOK_SECRET) return new Response('forbidden', { status: 403 });
   const upd = await req.json();
   const msg = upd.message;
   if (!msg?.text || msg.chat.type !== 'private') return new Response('ok');
   const chatId = msg.chat.id;
-  const cmd = msg.text.trim().split(/\s+/)[0].split('@')[0].toLowerCase();
+  const text = msg.text.trim();
+  const cmd = BTN_TO_CMD[text] || text.split(/\s+/)[0].split('@')[0].toLowerCase();
 
   try {
     if (cmd === '/start' || cmd === '/resume') {
@@ -179,17 +191,32 @@ async function handleBot(req) {
           ? `✨ <b>Привет, ${name}!</b>\n\nЭто <b>«Мой ${new Date().getUTCFullYear()}»</b> — календарь твоей жизни.\n\nКаждый вечер — 5 коротких вопросов, 10 секунд. Каждый день окрашивается от 🟥 к 🟩, и год складывается в живую картину.\n\nРаз в неделю, месяц и год я пришлю тебе итоги.`
           : '🔔 Отчёты снова включены.',
         appButton('✦ Открыть мой год'));
+      await send(chatId, 'Кнопки отчётов — внизу 👇', MAIN_KB);
     } else if (cmd === '/stop') {
       await db.from('users').update({ notify: false }).eq('id', chatId);
       await send(chatId, '🔕 Отчёты и напоминания выключены. Включить снова — /resume');
     } else if (cmd === '/today') {
-      await send(chatId, '🌙 Как прошёл день?', appButton('✦ Отметить день', true));
+      const u = must(await db.from('users').select('tz_offset').eq('id', chatId).maybeSingle());
+      const todayKey = keyOf(localNow(u ? u.tz_offset : 120));
+      const yKey = keyOf(addDays(fromKey(todayKey), -1));
+      const rows = must(await db.from('entries').select('date').eq('user_id', chatId).in('date', [todayKey, yKey]));
+      const done = new Set(rows.map((r) => r.date));
+      const kb = [];
+      if (!done.has(todayKey)) kb.push([{ text: '✦ Отметить сегодня', web_app: { url: WEBAPP_URL + '?startapp=quiz' } }]);
+      if (!done.has(yKey)) kb.push([{ text: '↩︎ Заполнить вчера', web_app: { url: WEBAPP_URL + '?startapp=yesterday' } }]);
+      if (!kb.length) {
+        await send(chatId, '✅ Сегодня и вчера уже отмечены. Так держать!', appButton('✦ Открыть мой год'));
+      } else {
+        await send(chatId, done.has(todayKey) ? '🌙 Вчерашний день ещё можно отметить — только сегодня.'
+          : !done.has(yKey) ? '🌙 Как прошёл день? И вчера тоже не отмечен — его ещё можно заполнить.'
+          : '🌙 Как прошёл день?', { inline_keyboard: kb });
+      }
     } else if (cmd === '/week' || cmd === '/month' || cmd === '/year') {
       const u = must(await db.from('users').select('tz_offset').eq('id', chatId).maybeSingle());
       const ref = fromKey(keyOf(localNow(u ? u.tz_offset : 120)));
       await send(chatId, await buildReport(chatId, cmd.slice(1), ref, true), appButton('📊 Подробнее в приложении'));
     } else {
-      await send(chatId, 'Открой приложение кнопкой ниже 👇\n\n/today — отметить день\n/week /month /year — итоги\n/stop — выключить уведомления', appButton('✦ Мой год'));
+      await send(chatId, 'Жми кнопки внизу 👇\n\n✦ Отметить день — опросник за сегодня или вчера\n📊 🌕 🏆 — итоги недели, месяца, года\n/stop — выключить уведомления', MAIN_KB);
     }
   } catch (e) {
     console.error('bot', e);
@@ -300,7 +327,7 @@ async function runSchedule() {
       if (DAILY_REMINDER) {
         const has = must(await db.from('entries').select('date').eq('user_id', u.id).eq('date', todayKey).maybeSingle());
         if (!has && await once(u.id, 'remind', todayKey)) {
-          await send(u.id, '🌙 <b>Как прошёл день?</b>\nОтметь его — 5 вопросов, 10 секунд.', appButton('✦ Отметить день', true)); sentCount++;
+          await send(u.id, '🌙 <b>Как прошёл день?</b>\nОтметь его — 5 вопросов, 10 секунд.\nЗабудешь — завтра ещё можно будет заполнить.', appButton('✦ Отметить день', true)); sentCount++;
         }
       }
       if (wdIdx(ref) === 6 && await once(u.id, 'week', todayKey)) {
@@ -329,7 +356,8 @@ async function setup(url) {
   });
   out.commands = await tg('setMyCommands', {
     commands: [
-      { command: 'today', description: 'Отметить сегодняшний день' },
+      { command: 'start', description: 'Показать кнопки' },
+      { command: 'today', description: 'Отметить сегодня или вчера' },
       { command: 'week', description: 'Итоги недели' },
       { command: 'month', description: 'Итоги месяца' },
       { command: 'year', description: 'Итоги года' },

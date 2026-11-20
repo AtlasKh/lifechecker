@@ -92,6 +92,16 @@ h3{margin:0;font-size:15px;font-weight:700;letter-spacing:.01em}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 9px;border-radius:99px;background:rgba(255,200,130,.07);border:1px solid var(--line)}
 .chip i{width:7px;height:7px;border-radius:50%;display:inline-block}
+.ybanner{width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:14px 16px;margin-bottom:14px;border-radius:18px;
+  background:rgba(255,120,40,.07);border:1px dashed rgba(255,150,60,.35);transition:transform .12s}
+.ybanner:active{transform:scale(.98)}
+.ybanner-dot{width:10px;height:10px;border-radius:50%;background:var(--amber-hot);box-shadow:0 0 12px var(--amber-hot);flex:none;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.ybanner-text{flex:1;display:flex;flex-direction:column;gap:2px}
+.ybanner-text b{font-size:14px;font-weight:800}
+.ybanner-text span{font-size:12px;color:var(--muted);font-weight:600}
+.ybanner-go{color:var(--amber);font-size:18px;font-weight:800}
+.lock-note{margin-top:16px;padding:14px;border-radius:16px;text-align:center;font-size:13px;font-weight:700;color:var(--muted);background:rgba(255,200,130,.05);border:1px solid var(--line)}
 .link-btn{margin-top:12px;font-size:13px;font-weight:700;color:var(--amber)}
 
 /* ring */
@@ -399,6 +409,8 @@ function scoreOf(a) {
   return v.length ? mean(v) : null;
 }
 const entry = d => store.entries[typeof d === 'string' ? d : keyOf(d)];
+// Отмечать можно только сегодня и вчера (один пропущенный день)
+const canFill = k => k === keyOf(today()) || k === keyOf(addDays(today(), -1));
 
 /* ================= СИНХРОНИЗАЦИЯ ================= */
 const canSync = () => !!(API_URL && inTG);
@@ -408,7 +420,7 @@ async function api(method, path, body) {
     headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': TG.initData },
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (!r.ok) throw new Error('HTTP ' + r.status);
+  if (!r.ok) { const err = new Error('HTTP ' + r.status); err.status = r.status; throw err; }
   return r.json();
 }
 async function pushOne(k) {
@@ -417,7 +429,11 @@ async function pushOne(k) {
   try {
     await api('PUT', '/api/entries/' + k, { answers: e.a, tz: -new Date().getTimezoneOffset() });
     delete store.pending[k];
-  } catch (err) { store.pending[k] = 1; }
+  } catch (err) {
+    // 4xx (например, слишком старая дата) — повторять бессмысленно
+    if (err.status >= 400 && err.status < 500 && err.status !== 401) delete store.pending[k];
+    else store.pending[k] = 1;
+  }
   persist();
 }
 async function sync() {
@@ -524,6 +540,12 @@ function viewHome() {
       <div><div class="cta-title">Как прошёл день?</div><div class="cta-sub">5 вопросов · 10 секунд</div></div>
       <div class="cta-arrow">→</div></button>`;
 
+  const yk = keyOf(addDays(t, -1));
+  const yBanner = entry(yk) ? '' : `<button class="ybanner" data-act="quiz" data-arg="${yk}">
+      <span class="ybanner-dot"></span>
+      <span class="ybanner-text"><b>Вчера не отмечен</b><span>Ещё можно заполнить — только сегодня</span></span>
+      <span class="ybanner-go">→</span></button>`;
+
   return `
   <header class="hero">
     <div class="eyebrow">Календарь жизни</div>
@@ -533,6 +555,7 @@ function viewHome() {
     <div class="yearbar-meta"><span>День ${doy} из ${total}</span><span>${yp}% года прожито</span></div>
   </header>
   ${todayBlock}
+  ${yBanner}
   <section class="card">
     <div class="card-head"><h3>Эта неделя</h3><span class="muted">${st.filled} из ${st.elapsed} дней</span></div>
     <div class="weekstrip">${[0,1,2,3,4,5,6].map(i => { const d = addDays(ws, i);
@@ -636,7 +659,8 @@ function openSheet(k) {
       <div class="muted" style="font-weight:600;font-size:14px;margin-top:3px">${e ? verdict(e.s) + ' · ' + pct(e.s) + '%' : fut ? 'Этот день ещё впереди' : 'День не отмечен'}</div></div></div>
     ${e ? QUESTIONS.map(q => { const v = e.a[q.id], o = OPTIONS.find(o => o.v === v);
       return `<div class="arow"><span>${q.emoji}&nbsp; ${q.short}</span><b style="color:${ansColor(v)}">${o ? o.label : '—'}</b></div>`; }).join('') : ''}
-    ${fut ? '' : `<button class="btn-primary" data-act="quiz" data-arg="${k}">${e ? 'Изменить ответы' : 'Отметить день'}</button>`}
+    ${canFill(k) ? `<button class="btn-primary" data-act="quiz" data-arg="${k}">${e ? 'Изменить ответы' : 'Отметить день'}</button>`
+      : fut ? '' : `<div class="lock-note">🔒 ${e ? 'Менять можно только сегодня и вчера' : 'Пропущенный день. Дозаполнить можно только вчерашний'}</div>`}
   </div>`;
   sheetEl.classList.add('open');
   syncBackButton();
@@ -647,7 +671,7 @@ function closeSheet() { sheetEl.classList.remove('open'); syncBackButton(); }
 const quizEl = document.getElementById('quiz'), quizInner = document.getElementById('quizInner');
 let quiz = null, lock = false;
 function openQuiz(k) {
-  if (parseKey(k) > today()) return;
+  if (!canFill(k)) return;
   closeSheet();
   const prev = entry(k);
   quiz = { date: k, i: 0, answers: prev ? { ...prev.a } : {} };
@@ -670,7 +694,7 @@ function renderQuiz(anim) {
     <div class="quiz-stage" id="stage"><div class="qcard ${anim || ''}" id="qcard">
       <div class="qemoji">${q.emoji}</div>
       <div class="qnum">${quiz.i + 1} / ${QUESTIONS.length}</div>
-      <div class="qtext">${q.text}</div></div></div>
+      <div class="qtext">${quiz.date === keyOf(today()) ? q.text : q.text.replace('сегодня', 'вчера')}</div></div></div>
     <div class="answers">${OPTIONS.map(o => `<button class="ans ans-${o.key} ${cur === o.v ? 'sel' : ''}" data-act="ans" data-arg="${o.v}"><span class="dot"></span>${o.label}</button>`).join('')}</div>
     <div class="quiz-hint">Свайп карточки: ← нет · да →</div>`;
   bindSwipe();
@@ -767,6 +791,7 @@ document.addEventListener('click', e => {
 const startParam = (TG && TG.initDataUnsafe && TG.initDataUnsafe.start_param) || new URLSearchParams(location.search).get('startapp');
 render();
 if (startParam === 'quiz' && !entry(today())) openQuiz(keyOf(today()));
+if (startParam === 'yesterday' && !entry(addDays(today(), -1))) openQuiz(keyOf(addDays(today(), -1)));
 sync();
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(); sync(); } });
 })();
