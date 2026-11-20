@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#0b0704">
-<title>Мой год — календарь жизни</title>
+<title>Мій рік — календар життя</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -274,9 +274,9 @@ button.cell:active,.wday:active .cell{transform:scale(.9)}
 
 <nav class="tabbar">
   <button class="tab" data-act="tab" data-arg="home">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Сегодня</button>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Сьогодні</button>
   <button class="tab" data-act="tab" data-arg="cal">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4.5" width="18" height="16.5" rx="4"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><circle cx="8" cy="14" r="1" fill="currentColor"/><circle cx="12" cy="14" r="1" fill="currentColor"/><circle cx="16" cy="14" r="1" fill="currentColor"/></svg>Календарь</button>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4.5" width="18" height="16.5" rx="4"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><circle cx="8" cy="14" r="1" fill="currentColor"/><circle cx="12" cy="14" r="1" fill="currentColor"/><circle cx="16" cy="14" r="1" fill="currentColor"/></svg>Календар</button>
   <button class="tab" data-act="tab" data-arg="stats">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V11M10 20V5M16 20v-7M22 20H2"/></svg>Статистика</button>
 </nav>
@@ -295,16 +295,16 @@ button.cell:active,.wday:active .cell{transform:scale(.9)}
 const API_URL = 'https://wkjszhpgdvdjfnqfbxqy.supabase.co/functions/v1/lifecal';
 
 const QUESTIONS = [
-  { id: 'food',  emoji: '🍲', short: 'Еда',     text: 'Я сегодня хорошо покушал?' },
-  { id: 'sleep', emoji: '🌙', short: 'Сон',     text: 'Я сегодня выспался?' },
-  { id: 'sport', emoji: '⚡', short: 'Спорт',   text: 'Я сегодня занимался спортом?' },
-  { id: 'happy', emoji: '☀️', short: 'Счастье', text: 'Я сегодня чувствовал счастье?' },
-  { id: 'dream', emoji: '🚀', short: 'Мечта',   text: 'Я сегодня стал на шаг ближе к мечте?' },
+  { id: 'food',  emoji: '🍲', short: 'Їжа',     text: 'Я сьогодні добре поїв?' },
+  { id: 'sleep', emoji: '🌙', short: 'Сон',     text: 'Я сьогодні виспався?' },
+  { id: 'sport', emoji: '⚡', short: 'Спорт',   text: 'Я сьогодні займався спортом?' },
+  { id: 'happy', emoji: '☀️', short: 'Щастя',   text: 'Я сьогодні відчував щастя?' },
+  { id: 'dream', emoji: '🚀', short: 'Мрія',    text: 'Я сьогодні став на крок ближче до мрії?' },
 ];
 const OPTIONS = [
-  { v: 0,   key: 'no',  label: 'Нет' },
-  { v: 0.5, key: 'mid', label: 'Отчасти' },
-  { v: 1,   key: 'yes', label: 'Да' },
+  { v: 0,   key: 'no',  label: 'Ні' },
+  { v: 0.5, key: 'mid', label: 'Частково' },
+  { v: 1,   key: 'yes', label: 'Так' },
 ];
 
 /* ================= TELEGRAM ================= */
@@ -326,11 +326,11 @@ const haptic = {
 };
 
 /* ================= ДАТЫ ================= */
-const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-const MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-const MONTHS_SH = ['Я','Ф','М','А','М','И','И','А','С','О','Н','Д'];
-const WD = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-const WD_LONG = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+const MONTHS = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+const MONTHS_GEN = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
+const MONTHS_SH = ['С','Л','Б','К','Т','Ч','Л','С','В','Ж','Л','Г'];
+const WD = ['Пн','Вт','Ср','Чт','Пт','Сб','Нд'];
+const WD_LONG = ['Понеділок','Вівторок','Середа','Четвер','Пʼятниця','Субота','Неділя'];
 const pad = n => String(n).padStart(2, '0');
 const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const parseKey = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
@@ -365,8 +365,8 @@ function periodTitle(scale, anchor) {
 }
 function dayLabel(k) {
   const d = parseKey(k), t = today();
-  if (sameDay(d, t)) return 'Сегодня, ' + d.getDate() + ' ' + MONTHS_GEN[d.getMonth()];
-  if (sameDay(d, addDays(t, -1))) return 'Вчера, ' + d.getDate() + ' ' + MONTHS_GEN[d.getMonth()];
+  if (sameDay(d, t)) return 'Сьогодні, ' + d.getDate() + ' ' + MONTHS_GEN[d.getMonth()];
+  if (sameDay(d, addDays(t, -1))) return 'Вчора, ' + d.getDate() + ' ' + MONTHS_GEN[d.getMonth()];
   return WD_LONG[wdIdx(d)] + ', ' + d.getDate() + ' ' + MONTHS_GEN[d.getMonth()];
 }
 
@@ -382,18 +382,16 @@ const cellStyle = s => s == null ? '' : `background:rgb(${colorArr(s)});border-c
 const ansColor = v => v == null ? 'rgba(255,200,130,.1)' : rgb(v);
 const pct = s => Math.round(s * 100);
 function verdict(s) {
-  if (s >= .9) return 'Сияющий день ✨';
-  if (s >= .7) return 'Отличный день';
-  if (s >= .5) return 'Хороший день';
-  if (s >= .3) return 'Так себе день';
-  return 'Непростой день';
+  if (s >= .9) return 'Сяйливий день ✨';
+  if (s >= .7) return 'Чудовий день';
+  if (s >= .5) return 'Гарний день';
+  if (s >= .3) return 'Так собі день';
+  return 'Непростий день';
 }
 
 function periodVerdict(scale, s) {
-  const fem = scale === 'week';
-  const noun = { week: 'неделя', month: 'месяц', year: 'год' }[scale];
-  const adj = s >= .9 ? (fem ? 'Сияющая' : 'Сияющий') : s >= .7 ? (fem ? 'Отличная' : 'Отличный')
-    : s >= .5 ? (fem ? 'Хорошая' : 'Хороший') : s >= .3 ? (fem ? 'Неровная' : 'Неровный') : (fem ? 'Непростая' : 'Непростой');
+  const noun = { week: 'тиждень', month: 'місяць', year: 'рік' }[scale];
+  const adj = s >= .9 ? 'Сяйливий' : s >= .7 ? 'Чудовий' : s >= .5 ? 'Гарний' : s >= .3 ? 'Нерівний' : 'Непростий';
   return adj + ' ' + noun;
 }
 
@@ -501,7 +499,7 @@ function answerChips(a) {
 function seg(scale, act) {
   const idx = ['week', 'month', 'year'].indexOf(scale);
   return `<div class="seg"><div class="pill" style="transform:translateX(${idx * 100}%)"></div>
-    ${[['week','Неделя'],['month','Месяц'],['year','Год']].map(([k, l]) => `<button class="${k === scale ? 'on' : ''}" data-act="${act}" data-arg="${k}">${l}</button>`).join('')}</div>`;
+    ${[['week','Тиждень'],['month','Місяць'],['year','Рік']].map(([k, l]) => `<button class="${k === scale ? 'on' : ''}" data-act="${act}" data-arg="${k}">${l}</button>`).join('')}</div>`;
 }
 function periodNav(scale, anchor, act) {
   const nextStart = rangeOf(scale, shift(scale, anchor, 1)).start;
@@ -509,14 +507,14 @@ function periodNav(scale, anchor, act) {
     <div class="ptitle">${periodTitle(scale, anchor)}</div>
     <button class="icon-btn" data-act="${act}" data-arg="1" ${nextStart > today() ? 'disabled' : ''}>›</button></div>`;
 }
-const legend = () => `<div class="legend"><span>хуже</span><div class="grad"></div><span>лучше</span></div>`;
+const legend = () => `<div class="legend"><span>гірше</span><div class="grad"></div><span>краще</span></div>`;
 
 /* ================= ЭКРАНЫ ================= */
 const state = { tab: 'home', cal: { scale: 'month', anchor: today() }, st: { scale: 'week', anchor: today() } };
 
 function greeting() {
   const h = new Date().getHours();
-  return h < 5 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Добрый день' : 'Добрый вечер';
+  return h < 5 ? 'Доброї ночі' : h < 12 ? 'Доброго ранку' : h < 18 ? 'Добрий день' : 'Добрий вечір';
 }
 
 function viewHome() {
@@ -530,41 +528,41 @@ function viewHome() {
   const todayBlock = e ? `
     <section class="card"><div class="today">
       ${ring(e.s, 96, 10)}
-      <div class="today-info"><div class="today-label">Сегодня</div>
+      <div class="today-info"><div class="today-label">Сьогодні</div>
         <div class="today-verdict">${verdict(e.s)}</div>
         ${answerChips(e.a)}
-        <button class="link-btn" data-act="quiz" data-arg="${k}">Изменить ответы →</button>
+        <button class="link-btn" data-act="quiz" data-arg="${k}">Змінити відповіді →</button>
       </div></div></section>`
   : `<button class="cta" data-act="quiz" data-arg="${k}">
       <div class="cta-icon">✦</div>
-      <div><div class="cta-title">Как прошёл день?</div><div class="cta-sub">5 вопросов · 10 секунд</div></div>
+      <div><div class="cta-title">Як минув день?</div><div class="cta-sub">5 питань · 10 секунд</div></div>
       <div class="cta-arrow">→</div></button>`;
 
   const yk = keyOf(addDays(t, -1));
   const yBanner = entry(yk) ? '' : `<button class="ybanner" data-act="quiz" data-arg="${yk}">
       <span class="ybanner-dot"></span>
-      <span class="ybanner-text"><b>Вчера не отмечен</b><span>Ещё можно заполнить — только сегодня</span></span>
+      <span class="ybanner-text"><b>Вчора не відмічено</b><span>Ще можна заповнити — лише сьогодні</span></span>
       <span class="ybanner-go">→</span></button>`;
 
   return `
   <header class="hero">
-    <div class="eyebrow">Календарь жизни</div>
-    <h1 class="title">Мой <span class="neon">${y}</span></h1>
+    <div class="eyebrow">Календар життя</div>
+    <h1 class="title">Мій <span class="neon">${y}</span></h1>
     <p class="greet">${greeting()}${user && user.first_name ? ', ' + esc(user.first_name) : ''}</p>
     <div class="yearbar"><div class="yearbar-fill" style="width:${yp}%"></div></div>
-    <div class="yearbar-meta"><span>День ${doy} из ${total}</span><span>${yp}% года прожито</span></div>
+    <div class="yearbar-meta"><span>День ${doy} з ${total}</span><span>${yp}% року прожито</span></div>
   </header>
   ${todayBlock}
   ${yBanner}
   <section class="card">
-    <div class="card-head"><h3>Эта неделя</h3><span class="muted">${st.filled} из ${st.elapsed} дней</span></div>
+    <div class="card-head"><h3>Цей тиждень</h3><span class="muted">${st.filled} з ${st.elapsed} днів</span></div>
     <div class="weekstrip">${[0,1,2,3,4,5,6].map(i => { const d = addDays(ws, i);
       return `<div class="wday ${sameDay(d, t) ? 'is-today' : ''}">${dayCell(d)}<span>${WD[i]}</span></div>`; }).join('')}</div>
   </section>
   <section class="tiles">
-    <div class="tile"><div class="tile-num">${currentStreak()}</div><div class="tile-lbl">🔥 дней<br>подряд</div></div>
-    <div class="tile"><div class="tile-num" style="${st.avg != null ? `color:${rgb(st.avg)};text-shadow:0 0 14px ${rgb(st.avg)}` : ''}">${st.avg != null ? pct(st.avg) + '%' : '—'}</div><div class="tile-lbl">среднее<br>за неделю</div></div>
-    <div class="tile"><div class="tile-num">${yearFilled}</div><div class="tile-lbl">дней<br>отмечено</div></div>
+    <div class="tile"><div class="tile-num">${currentStreak()}</div><div class="tile-lbl">🔥 днів<br>поспіль</div></div>
+    <div class="tile"><div class="tile-num" style="${st.avg != null ? `color:${rgb(st.avg)};text-shadow:0 0 14px ${rgb(st.avg)}` : ''}">${st.avg != null ? pct(st.avg) + '%' : '—'}</div><div class="tile-lbl">середнє<br>за тиждень</div></div>
+    <div class="tile"><div class="tile-num">${yearFilled}</div><div class="tile-lbl">днів<br>відмічено</div></div>
   </section>`;
 }
 
@@ -598,12 +596,12 @@ function viewCalendar() {
       return `<button class="wrow ${sameDay(d, t) ? 'is-today' : ''}" data-act="day" data-arg="${keyOf(d)}">
         <div class="cell ${fut ? 'future' : ''}" style="${e ? cellStyle(e.s) : ''}"></div>
         <div class="wrow-main"><div class="wrow-day">${WD_LONG[i]}</div>
-          <div class="wrow-sub">${d.getDate()} ${MONTHS_GEN[d.getMonth()]}${!e && !fut ? ' · не отмечен' : ''}${fut ? ' · впереди' : ''}</div></div>
+          <div class="wrow-sub">${d.getDate()} ${MONTHS_GEN[d.getMonth()]}${!e && !fut ? ' · не відмічено' : ''}${fut ? ' · попереду' : ''}</div></div>
         <div class="qdots">${QUESTIONS.map(q => { const v = e ? e.a[q.id] : null; return `<i style="background:${ansColor(v)};${v != null ? `box-shadow:0 0 6px ${ansColor(v)}` : ''}"></i>`; }).join('')}</div>
         <div class="wrow-pct" style="color:${e ? rgb(e.s) : 'var(--faint)'}">${e ? pct(e.s) + '%' : '—'}</div></button>`;
     }).join('')}</div></section>`;
   }
-  return `<h2 class="page-title">Календарь</h2>${seg(scale, 'calScale')}${periodNav(scale, anchor, 'calNav')}${body}`;
+  return `<h2 class="page-title">Календар</h2>${seg(scale, 'calScale')}${periodNav(scale, anchor, 'calNav')}${body}`;
 }
 
 function viewStats() {
@@ -628,17 +626,17 @@ function viewStats() {
 
   return `<h2 class="page-title">Статистика</h2>${seg(scale, 'stScale')}${periodNav(scale, anchor, 'stNav')}
   <section class="card statmain">${ring(s.avg, 108, 11)}
-    <div><div class="big">${s.avg != null ? periodVerdict(scale, s.avg) : 'Пока пусто'}</div>
-      <div class="statline">Отмечено <b>${s.filled}</b> из <b>${s.elapsed}</b> дней</div>
-      <div class="statline">Лучшая серия: <b>${s.maxStreak}</b> 🔥</div></div></section>
-  <section class="card"><div class="card-head"><h3>Динамика</h3><span class="muted">${scale === 'year' ? 'по месяцам' : 'по дням'}</span></div>${barsHtml}</section>
-  <section class="card"><div class="card-head"><h3>По вопросам</h3></div>
+    <div><div class="big">${s.avg != null ? periodVerdict(scale, s.avg) : 'Поки порожньо'}</div>
+      <div class="statline">Відмічено <b>${s.filled}</b> з <b>${s.elapsed}</b> днів</div>
+      <div class="statline">Найкраща серія: <b>${s.maxStreak}</b> 🔥</div></div></section>
+  <section class="card"><div class="card-head"><h3>Динаміка</h3><span class="muted">${scale === 'year' ? 'по місяцях' : 'по днях'}</span></div>${barsHtml}</section>
+  <section class="card"><div class="card-head"><h3>За питаннями</h3></div>
     ${s.filled ? s.perQ.map(({ q, v }) => `<div class="qrow"><span class="e">${q.emoji}</span><span class="n">${q.short}</span>
       <div class="track"><i style="width:${v == null ? 0 : Math.max(3, v * 100)}%;background:linear-gradient(90deg,rgba(${colorArr(v ?? 0)},.5),${rgb(v ?? 0)});box-shadow:0 0 10px rgba(${colorArr(v ?? 0)},.5)"></i></div>
       <span class="v" style="color:${v == null ? 'var(--faint)' : rgb(v)}">${v == null ? '—' : pct(v) + '%'}</span></div>`).join('')
-      : `<div class="empty-note">Отметь хотя бы один день — и здесь появится картина</div>`}</section>
+      : `<div class="empty-note">Відміть хоча б один день — і тут зʼявиться картина</div>`}</section>
   ${s.best ? `<section class="card best"><button class="cell filled" style="${cellStyle(s.best.e.s)}" data-act="day" data-arg="${keyOf(s.best.d)}"></button>
-    <div><div class="today-label">Лучший день</div><div style="font-weight:800;font-size:16px;margin-top:4px">${dayLabel(keyOf(s.best.d))} · ${pct(s.best.e.s)}%</div></div></section>` : ''}`;
+    <div><div class="today-label">Найкращий день</div><div style="font-weight:800;font-size:16px;margin-top:4px">${dayLabel(keyOf(s.best.d))} · ${pct(s.best.e.s)}%</div></div></section>` : ''}`;
 }
 
 function render() {
@@ -656,11 +654,11 @@ function openSheet(k) {
   sheetEl.innerHTML = `<div class="sheet-bg" data-act="sheetClose"></div><div class="sheet-panel"><div class="grab"></div>
     <div class="sheet-head"><div class="cell ${fut ? 'future' : ''}" style="${e ? cellStyle(e.s) : ''}"></div>
       <div><div class="sheet-date">${dayLabel(k)}</div>
-      <div class="muted" style="font-weight:600;font-size:14px;margin-top:3px">${e ? verdict(e.s) + ' · ' + pct(e.s) + '%' : fut ? 'Этот день ещё впереди' : 'День не отмечен'}</div></div></div>
+      <div class="muted" style="font-weight:600;font-size:14px;margin-top:3px">${e ? verdict(e.s) + ' · ' + pct(e.s) + '%' : fut ? 'Цей день ще попереду' : 'День не відмічено'}</div></div></div>
     ${e ? QUESTIONS.map(q => { const v = e.a[q.id], o = OPTIONS.find(o => o.v === v);
       return `<div class="arow"><span>${q.emoji}&nbsp; ${q.short}</span><b style="color:${ansColor(v)}">${o ? o.label : '—'}</b></div>`; }).join('') : ''}
-    ${canFill(k) ? `<button class="btn-primary" data-act="quiz" data-arg="${k}">${e ? 'Изменить ответы' : 'Отметить день'}</button>`
-      : fut ? '' : `<div class="lock-note">🔒 ${e ? 'Менять можно только сегодня и вчера' : 'Пропущенный день. Дозаполнить можно только вчерашний'}</div>`}
+    ${canFill(k) ? `<button class="btn-primary" data-act="quiz" data-arg="${k}">${e ? 'Змінити відповіді' : 'Відмітити день'}</button>`
+      : fut ? '' : `<div class="lock-note">🔒 ${e ? 'Змінювати можна лише сьогодні та вчора' : 'Пропущений день. Дозаповнити можна лише вчорашній'}</div>`}
   </div>`;
   sheetEl.classList.add('open');
   syncBackButton();
@@ -694,9 +692,9 @@ function renderQuiz(anim) {
     <div class="quiz-stage" id="stage"><div class="qcard ${anim || ''}" id="qcard">
       <div class="qemoji">${q.emoji}</div>
       <div class="qnum">${quiz.i + 1} / ${QUESTIONS.length}</div>
-      <div class="qtext">${quiz.date === keyOf(today()) ? q.text : q.text.replace('сегодня', 'вчера')}</div></div></div>
+      <div class="qtext">${quiz.date === keyOf(today()) ? q.text : q.text.replace('сьогодні', 'вчора')}</div></div></div>
     <div class="answers">${OPTIONS.map(o => `<button class="ans ans-${o.key} ${cur === o.v ? 'sel' : ''}" data-act="ans" data-arg="${o.v}"><span class="dot"></span>${o.label}</button>`).join('')}</div>
-    <div class="quiz-hint">Свайп карточки: ← нет · да →</div>`;
+    <div class="quiz-hint">Свайп картки: ← ні · так →</div>`;
   bindSwipe();
 }
 function answer(v, btn) {
@@ -730,7 +728,7 @@ function finishQuiz() {
   quizInner.innerHTML = `<div class="result" style="--c:${c}">${sparks}
     <div class="result-cell"><span>${pct(s)}%</span></div>
     <div class="result-title">${verdict(s)}</div>
-    <div class="result-sub">${dayLabel(quiz.date)} теперь в календаре</div>
+    <div class="result-sub">${dayLabel(quiz.date)} тепер у календарі</div>
     ${answerChips(quiz.answers)}
     <button class="btn-primary" data-act="quizClose" style="max-width:320px">Готово</button></div>`;
 }

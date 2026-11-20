@@ -25,16 +25,16 @@ const SUPABASE_URL = env('SUPABASE_URL');
 const db = createClient(SUPABASE_URL, env('SUPABASE_SERVICE_ROLE_KEY'), { auth: { persistSession: false } });
 
 const QUESTIONS = [
-  { id: 'food',  emoji: '🍲', short: 'Еда' },
+  { id: 'food',  emoji: '🍲', short: 'Їжа' },
   { id: 'sleep', emoji: '🌙', short: 'Сон' },
   { id: 'sport', emoji: '⚡', short: 'Спорт' },
-  { id: 'happy', emoji: '☀️', short: 'Счастье' },
-  { id: 'dream', emoji: '🚀', short: 'Мечта' },
+  { id: 'happy', emoji: '☀️', short: 'Щастя' },
+  { id: 'dream', emoji: '🚀', short: 'Мрія' },
 ];
 const ALLOWED = new Set([0, 0.5, 1]);
-const MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-const MONTHS_SH = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+const MONTHS_GEN = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
+const MONTHS = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+const MONTHS_SH = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
 
 /* ---------------- маршрутизация ---------------- */
 Deno.serve(async (req) => {
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
         secret_keys_env: !!Deno.env.get('SUPABASE_SECRET_KEYS'),
       });
     }
-    return new Response('Мой год · бэкенд работает ✨', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
+    return new Response('Мій рік · бекенд працює ✨', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
   } catch (e) {
     console.error(e);
     return cors(json({ error: String(e?.message || e) }, 500));
@@ -184,12 +184,16 @@ async function send(chatId, text, markup) {
 }
 
 // Постоянные кнопки внизу чата
-const BTN = { today: '✦ Отметить день', week: '📊 Неделя', month: '🌕 Месяц', year: '🏆 Год' };
+const BTN = { today: '✦ Відмітити день', week: '📊 Тиждень', month: '🌕 Місяць', year: '🏆 Рік' };
 const MAIN_KB = {
   keyboard: [[{ text: BTN.today }], [{ text: BTN.week }, { text: BTN.month }, { text: BTN.year }]],
   resize_keyboard: true, is_persistent: true,
 };
-const BTN_TO_CMD = { [BTN.today]: '/today', [BTN.week]: '/week', [BTN.month]: '/month', [BTN.year]: '/year' };
+const BTN_TO_CMD = {
+  [BTN.today]: '/today', [BTN.week]: '/week', [BTN.month]: '/month', [BTN.year]: '/year',
+  // старые русские кнопки, которые могли остаться в чате
+  '✦ Отметить день': '/today', '📊 Неделя': '/week', '🌕 Месяц': '/month', '🏆 Год': '/year',
+};
 
 async function handleBot(req) {
   if (req.headers.get('X-Telegram-Bot-Api-Secret-Token') !== WEBHOOK_SECRET) return new Response('forbidden', { status: 403 });
@@ -203,16 +207,22 @@ async function handleBot(req) {
   try {
     if (cmd === '/start' || cmd === '/resume') {
       must(await db.from('users').upsert({ id: chatId, first_name: msg.from.first_name || '', notify: true }, { onConflict: 'id' }));
-      const name = escHtml(msg.from.first_name || 'друг');
+      const name = escHtml(msg.from.first_name || 'друже');
       await send(chatId,
         cmd === '/start'
-          ? `✨ <b>Привет, ${name}!</b>\n\nЭто <b>«Мой ${new Date().getUTCFullYear()}»</b> — календарь твоей жизни.\n\nКаждый вечер — 5 коротких вопросов, 10 секунд. Каждый день окрашивается от 🟥 к 🟩, и год складывается в живую картину.\n\nРаз в неделю, месяц и год я пришлю тебе итоги.`
-          : '🔔 Отчёты снова включены.',
-        appButton('✦ Открыть мой год'));
-      await send(chatId, 'Кнопки отчётов — внизу 👇', MAIN_KB);
+          ? `✨ <b>Привіт, ${name}!</b>
+
+Це <b>«Мій ${new Date().getUTCFullYear()}»</b> — календар твого життя.
+
+Щовечора — 5 коротких питань, 10 секунд. Кожен день забарвлюється від 🟥 до 🟩, і рік складається в живу картину.
+
+Раз на тиждень, місяць і рік я надсилатиму тобі підсумки.`
+          : '🔔 Звіти знову увімкнено.',
+        appButton('✦ Відкрити мій рік'));
+      await send(chatId, 'Кнопки звітів — внизу 👇', MAIN_KB);
     } else if (cmd === '/stop') {
       await db.from('users').update({ notify: false }).eq('id', chatId);
-      await send(chatId, '🔕 Отчёты и напоминания выключены. Включить снова — /resume');
+      await send(chatId, '🔕 Звіти й нагадування вимкнено. Увімкнути знову — /resume');
     } else if (cmd === '/today') {
       const u = must(await db.from('users').select('tz_offset').eq('id', chatId).maybeSingle());
       const todayKey = keyOf(localNow(u ? u.tz_offset : 120));
@@ -220,21 +230,21 @@ async function handleBot(req) {
       const rows = must(await db.from('entries').select('date').eq('user_id', chatId).in('date', [todayKey, yKey]));
       const done = new Set(rows.map((r) => r.date));
       const kb = [];
-      if (!done.has(todayKey)) kb.push([{ text: '✦ Отметить сегодня', web_app: { url: WEBAPP_URL + '?startapp=quiz' } }]);
-      if (!done.has(yKey)) kb.push([{ text: '↩︎ Заполнить вчера', web_app: { url: WEBAPP_URL + '?startapp=yesterday' } }]);
+      if (!done.has(todayKey)) kb.push([{ text: '✦ Відмітити сьогодні', web_app: { url: WEBAPP_URL + '?startapp=quiz' } }]);
+      if (!done.has(yKey)) kb.push([{ text: '↩︎ Заповнити вчора', web_app: { url: WEBAPP_URL + '?startapp=yesterday' } }]);
       if (!kb.length) {
-        await send(chatId, '✅ Сегодня и вчера уже отмечены. Так держать!', appButton('✦ Открыть мой год'));
+        await send(chatId, '✅ Сьогодні й вчора вже відмічено. Так тримати!', appButton('✦ Відкрити мій рік'));
       } else {
-        await send(chatId, done.has(todayKey) ? '🌙 Вчерашний день ещё можно отметить — только сегодня.'
-          : !done.has(yKey) ? '🌙 Как прошёл день? И вчера тоже не отмечен — его ещё можно заполнить.'
-          : '🌙 Как прошёл день?', { inline_keyboard: kb });
+        await send(chatId, done.has(todayKey) ? '🌙 Вчорашній день ще можна відмітити — лише сьогодні.'
+          : !done.has(yKey) ? '🌙 Як минув день? І вчора теж не відмічено — його ще можна заповнити.'
+          : '🌙 Як минув день?', { inline_keyboard: kb });
       }
     } else if (cmd === '/week' || cmd === '/month' || cmd === '/year') {
       const u = must(await db.from('users').select('tz_offset').eq('id', chatId).maybeSingle());
       const ref = fromKey(keyOf(localNow(u ? u.tz_offset : 120)));
-      await send(chatId, await buildReport(chatId, cmd.slice(1), ref, true), appButton('📊 Подробнее в приложении'));
+      await send(chatId, await buildReport(chatId, cmd.slice(1), ref, true), appButton('📊 Детальніше в застосунку'));
     } else {
-      await send(chatId, 'Жми кнопки внизу 👇\n\n✦ Отметить день — опросник за сегодня или вчера\n📊 🌕 🏆 — итоги недели, месяца, года\n/stop — выключить уведомления', MAIN_KB);
+      await send(chatId, 'Тисни кнопки внизу 👇\n\n✦ Відмітити день — опитування за сьогодні або вчора\n📊 🌕 🏆 — підсумки тижня, місяця, року\n/stop — вимкнути сповіщення', MAIN_KB);
     }
   } catch (e) {
     console.error('bot', e);
@@ -274,13 +284,13 @@ async function buildReport(userId, kind, ref, partial = false) {
   const pavg = pvals.length ? mean(pvals) : null;
 
   const title = kind === 'week'
-    ? `🗓 <b>Итоги недели</b> · ${start.getUTCDate()} ${MONTHS_GEN[start.getUTCMonth()]} – ${end.getUTCDate()} ${MONTHS_GEN[end.getUTCMonth()]}`
-    : kind === 'month' ? `🌕 <b>Итоги месяца</b> · ${MONTHS[start.getUTCMonth()]} ${start.getUTCFullYear()}`
-    : `🏆 <b>Итоги года</b> · ${start.getUTCFullYear()}`;
+    ? `🗓 <b>Підсумки тижня</b> · ${start.getUTCDate()} ${MONTHS_GEN[start.getUTCMonth()]} – ${end.getUTCDate()} ${MONTHS_GEN[end.getUTCMonth()]}`
+    : kind === 'month' ? `🌕 <b>Підсумки місяця</b> · ${MONTHS[start.getUTCMonth()]} ${start.getUTCFullYear()}`
+    : `🏆 <b>Підсумки року</b> · ${start.getUTCFullYear()}`;
   const lines = [title, ''];
 
   if (kind === 'week') {
-    lines.push(days.map((d) => square(map[keyOf(d)]?.s ?? null)).join(''), '<i>пн → вс</i>', '');
+    lines.push(days.map((d) => square(map[keyOf(d)]?.s ?? null)).join(''), '<i>пн → нд</i>', '');
   } else if (kind === 'month') {
     let row = '▫️'.repeat(wdIdx(start));
     for (const d of days) {
@@ -300,16 +310,16 @@ async function buildReport(userId, kind, ref, partial = false) {
   }
 
   if (avg == null) {
-    lines.push('Ни одного отмеченного дня за этот период.', 'Начни сегодня — это 10 секунд ✨');
+    lines.push('Жодного відміченого дня за цей період.', 'Почни сьогодні — це 10 секунд ✨');
     return lines.join('\n');
   }
   let cmp = '';
   if (pavg != null) {
     const diff = pct(avg) - pct(pavg);
-    cmp = diff > 0 ? ` · ↗️ +${diff}%` : diff < 0 ? ` · ↘️ ${diff}%` : ' · без изменений';
+    cmp = diff > 0 ? ` · ↗️ +${diff}%` : diff < 0 ? ` · ↘️ ${diff}%` : ' · без змін';
   }
-  lines.push(`${square(avg)} Средний день: <b>${pct(avg)}%</b>${cmp}`);
-  lines.push(`📌 Отмечено: <b>${ents.length}</b> из ${days.length} дней`, '');
+  lines.push(`${square(avg)} Середній день: <b>${pct(avg)}%</b>${cmp}`);
+  lines.push(`📌 Відмічено: <b>${ents.length}</b> з ${days.length} днів`, '');
 
   const perQ = QUESTIONS.map((q) => {
     const v = ents.map((e) => e.a[q.id]).filter((x) => typeof x === 'number');
@@ -318,7 +328,7 @@ async function buildReport(userId, kind, ref, partial = false) {
   for (const { q, a } of perQ) lines.push(`${q.emoji} ${q.short}  ${bar(a)} ${pct(a)}%`);
   if (perQ.length > 1) {
     const sorted = [...perQ].sort((x, y) => x.a - y.a);
-    lines.push('', `💪 Сильная сторона: <b>${sorted[sorted.length - 1].q.short}</b>`, `🎯 Точка роста: <b>${sorted[0].q.short}</b>`);
+    lines.push('', `💪 Сильна сторона: <b>${sorted[sorted.length - 1].q.short}</b>`, `🎯 Точка росту: <b>${sorted[0].q.short}</b>`);
   }
   return lines.join('\n');
 }
@@ -345,17 +355,17 @@ async function runSchedule() {
       if (DAILY_REMINDER) {
         const has = must(await db.from('entries').select('date').eq('user_id', u.id).eq('date', todayKey).maybeSingle());
         if (!has && await once(u.id, 'remind', todayKey)) {
-          await send(u.id, '🌙 <b>Как прошёл день?</b>\nОтметь его — 5 вопросов, 10 секунд.\nЗабудешь — завтра ещё можно будет заполнить.', appButton('✦ Отметить день', true)); sentCount++;
+          await send(u.id, '🌙 <b>Як минув день?</b>\nВідміть його — 5 питань, 10 секунд.\nЗабудеш — завтра ще можна буде заповнити.', appButton('✦ Відмітити день', true)); sentCount++;
         }
       }
       if (wdIdx(ref) === 6 && await once(u.id, 'week', todayKey)) {
-        await send(u.id, await buildReport(u.id, 'week', ref), appButton('📊 Открыть статистику')); sentCount++;
+        await send(u.id, await buildReport(u.id, 'week', ref), appButton('📊 Відкрити статистику')); sentCount++;
       }
       if (tomorrow.getUTCDate() === 1 && await once(u.id, 'month', todayKey.slice(0, 7))) {
-        await send(u.id, await buildReport(u.id, 'month', ref), appButton('📊 Открыть статистику')); sentCount++;
+        await send(u.id, await buildReport(u.id, 'month', ref), appButton('📊 Відкрити статистику')); sentCount++;
       }
       if (ref.getUTCMonth() === 11 && ref.getUTCDate() === 31 && await once(u.id, 'year', todayKey.slice(0, 4))) {
-        await send(u.id, await buildReport(u.id, 'year', ref), appButton('🏆 Мой год целиком')); sentCount++;
+        await send(u.id, await buildReport(u.id, 'year', ref), appButton('🏆 Мій рік повністю')); sentCount++;
       }
     } catch (e) {
       console.error('user', u.id, e);
@@ -374,17 +384,17 @@ async function setup(url) {
   });
   out.commands = await tg('setMyCommands', {
     commands: [
-      { command: 'start', description: 'Показать кнопки' },
-      { command: 'today', description: 'Отметить сегодня или вчера' },
-      { command: 'week', description: 'Итоги недели' },
-      { command: 'month', description: 'Итоги месяца' },
-      { command: 'year', description: 'Итоги года' },
-      { command: 'stop', description: 'Выключить уведомления' },
-      { command: 'resume', description: 'Включить уведомления' },
+      { command: 'start', description: 'Показати кнопки' },
+      { command: 'today', description: 'Відмітити сьогодні або вчора' },
+      { command: 'week', description: 'Підсумки тижня' },
+      { command: 'month', description: 'Підсумки місяця' },
+      { command: 'year', description: 'Підсумки року' },
+      { command: 'stop', description: 'Вимкнути сповіщення' },
+      { command: 'resume', description: 'Увімкнути сповіщення' },
     ],
   });
   out.menu = await tg('setChatMenuButton', {
-    menu_button: { type: 'web_app', text: 'Мой год', web_app: { url: WEBAPP_URL } },
+    menu_button: { type: 'web_app', text: 'Мій рік', web_app: { url: WEBAPP_URL } },
   });
   return json(out);
 }
